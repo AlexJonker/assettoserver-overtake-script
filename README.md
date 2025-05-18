@@ -11,8 +11,7 @@ SCRIPT = 'https://raw.githubusercontent.com/AlexJonker/assettoserver-overtake-sc
 ```
 
 # ToDo
-- Leaderboard for Overtake Script with Discord Webhook
-- Disable / Enable with Keybind the Overtake Menu
+- Leaderboard with Discord Webhook
 
 # Overtake Script
 ![image](/image.png)
