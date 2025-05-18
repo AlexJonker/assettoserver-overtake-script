@@ -1,20 +1,18 @@
-# assettoserver-lua-scripts
-lua Scripts for Assetto Server
-Post the Raw in Pastebin and copy the URL of the Raw
+# assettoserver overtake script
 
-To add a lua Script, add in your csp_extra_options.ini
+_Forked from [lucxsm/assettoserver-lua-scripts](https://github.com/lucxsm/assettoserver-lua-scripts)_
+
+Overtake script for Assetto Server.  
+
+To use the Lua script, add the following to your `csp_extra_options.ini`:
 ```
 [SCRIPT_1]
-SCRIPT = 'PASTEBIN-LINK'; Path can be either a web URL: for example, you can store your script 
+SCRIPT = 'https://raw.githubusercontent.com/AlexJonker/assettoserver-overtake-script/refs/heads/main/overtake.lua';
 ```
-
-# Support
-If you want to support me, you can also buy my scripts via [Patreon](https://www.patreon.com/lucaasde/shop).
-
 
 # ToDo
 - Leaderboard for Overtake Script with Discord Webhook
 - Disable / Enable with Keybind the Overtake Menu
 
 # Overtake Script
-![image](https://i.imgur.com/bWNJigV.png)
+![image](/image.png)
