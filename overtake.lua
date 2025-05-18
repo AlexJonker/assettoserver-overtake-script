@@ -279,7 +279,7 @@ function script.drawUI()
     -- Speed warning (below cards)
     ui.offsetCursorY(80)
     if speedWarning > 0.1 then
-        ui.drawRectFilled(vec2(0, ui.getCursorY()), vec2(windowSize.x, 30), rgbm(0.15, 0.1, 0.05, 0.7), 6)
+        -- ui.drawRectFilled(vec2(0, ui.getCursorY()), vec2(windowSize.x, 30), rgbm(0.15, 0.1, 0.05, 0.7), 6)
         ui.drawRect(vec2(0, ui.getCursorY()), vec2(windowSize.x, 30), rgbm(0.8, 0.4, 0.1, 0.5), 1, 6)
         ui.setCursor(vec2(10, ui.getCursorY() + 7))
         ui.pushFont(ui.Font.Main)
@@ -289,8 +289,8 @@ function script.drawUI()
         -- Speed progress bar
         local progress = math.min(player.speedKmh/requiredSpeed, 1)
         local barWidth = windowSize.x - 20
-        ui.drawRectFilled(vec2(10, ui.getCursorY() + 15), vec2(10 + barWidth, ui.getCursorY() + 20), rgbm(0.2, 0.2, 0.2, 1), 3)
-        ui.drawRectFilled(vec2(10, ui.getCursorY() + 15), vec2(10 + barWidth * progress, ui.getCursorY() + 20), colorWarning, 3)
+        -- ui.drawRectFilled(vec2(10, ui.getCursorY() + 15), vec2(10 + barWidth, ui.getCursorY() + 20), rgbm(0.2, 0.2, 0.2, 1), 3)
+        -- ui.drawRectFilled(vec2(10, ui.getCursorY() + 15), vec2(10 + barWidth * progress, ui.getCursorY() + 20), colorWarning, 3)
         ui.drawText(vec2(windowSize.x - 60, ui.getCursorY() + 12), string.format("%d/%d km/h", math.floor(player.speedKmh), requiredSpeed), rgbm(0.9, 0.9, 0.9, 1))
     end
     
