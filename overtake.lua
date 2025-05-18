@@ -44,7 +44,6 @@ function script.update(dt)
     if player.engineLifeLeft < 1 then
         if totalScore > highestScore then
             highestScore = math.floor(totalScore)
-            ac.sendChatMessage("scored " .. totalScore .. " points.")
         end
         totalScore = 0
         comboMeter = 1
@@ -74,7 +73,6 @@ function script.update(dt)
         if dangerouslySlowTimer > 3 then
             if totalScore > highestScore then
                 highestScore = math.floor(totalScore)
-                ac.sendChatMessage("scored " .. totalScore .. " points.")
             end
             totalScore = 0
             comboMeter = 1
@@ -118,7 +116,6 @@ function script.update(dt)
 
                 if totalScore > highestScore then
                     highestScore = math.floor(totalScore)
-                    ac.sendChatMessage("scored " .. totalScore .. " points.")
                 end
                 totalScore = 0
                 comboMeter = 1
