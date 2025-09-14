@@ -16,7 +16,7 @@
 -- • Remote future: control scene, AIs, spawn extra geometry and so on.
 
 -- Event configuration:
-local requiredSpeed = 60
+local requiredSpeed = 80
 
 
 -- This function is called before event activates. Once it returns true, it’ll run:
@@ -44,6 +44,7 @@ function script.update(dt)
     if player.engineLifeLeft < 1 then
         if totalScore > highestScore then
             highestScore = math.floor(totalScore)
+            ac.sendChatMessage("scored " .. totalScore .. " points.")
         end
         totalScore = 0
         comboMeter = 1
@@ -73,6 +74,7 @@ function script.update(dt)
         if dangerouslySlowTimer > 3 then
             if totalScore > highestScore then
                 highestScore = math.floor(totalScore)
+                ac.sendChatMessage("scored " .. totalScore .. " points.")
             end
             totalScore = 0
             comboMeter = 1
@@ -116,6 +118,7 @@ function script.update(dt)
 
                 if totalScore > highestScore then
                     highestScore = math.floor(totalScore)
+                    ac.sendChatMessage("scored " .. totalScore .. " points.")
                 end
                 totalScore = 0
                 comboMeter = 1
@@ -207,128 +210,79 @@ local function updateMessages(dt)
 end
 
 local speedWarning = 0
+    function script.drawUI()
+        local uiState = ac.getUiState()
+        updateMessages(uiState.dt)
 
-function script.drawUI()
-    local uiState = ac.getUiState()
-    updateMessages(uiState.dt)
+        local speedRelative = math.saturate(math.floor(ac.getCarState(1).speedKmh) / requiredSpeed)
+        speedWarning = math.applyLag(speedWarning, speedRelative < 1 and 1 or 0, 0.5, uiState.dt)
 
-    local player = ac.getCarState(1)
-    local speedRelative = math.saturate(math.floor(player.speedKmh) / requiredSpeed)
-    speedWarning = math.applyLag(speedWarning, speedRelative < 1 and 1 or 0, 0.5, uiState.dt)
+        local colorDark = rgbm(0.4, 0.4, 0.4, 1)
+        local colorGrey = rgbm(0.7, 0.7, 0.7, 1)
+        local colorAccent = rgbm.new(hsv(speedRelative * 120, 1, 1):rgb(), 1)
+        local colorCombo =
+            rgbm.new(hsv(comboColor, math.saturate(comboMeter / 10), 1):rgb(), math.saturate(comboMeter / 4))
 
-    -- Modern color palette
-    local colorBg = rgbm(0.08, 0.08, 0.1, 0.85)
-    local colorCard = rgbm(0.15, 0.15, 0.18, 0.9)
-    local colorAccent = rgbm.new(hsv(comboColor, 0.8, 1):rgb(), 1)
-    local colorText = rgbm(0.95, 0.95, 0.95, 1)
-    local colorPositive = rgbm(0.2, 0.8, 0.4, 1)
-    local colorNegative = rgbm(0.9, 0.3, 0.3, 1)
-    local colorWarning = rgbm(0.9, 0.6, 0.2, 1)
+        local function speedMeter(ref)
+            ui.drawRectFilled(ref + vec2(0, -4), ref + vec2(180, 5), colorDark, 1)
+            ui.drawLine(ref + vec2(0, -4), ref + vec2(0, 4), colorGrey, 1)
+            ui.drawLine(ref + vec2(requiredSpeed, -4), ref + vec2(requiredSpeed, 4), colorGrey, 1)
 
-    -- Fixed window size since we can't get it dynamically
-    local windowSize = vec2(300, 220)
-    local windowPos = vec2(20, 20)
-
-    -- Main container
-    ui.beginTransparentWindow("overtakeScore", windowPos, windowSize)
-    
-    -- Background with rounded corners
-    ui.drawRectFilled(vec2(0, 0), windowSize, colorBg, 12)
-    ui.drawRect(vec2(0, 0), windowSize, rgbm(0.3, 0.3, 0.35, 0.3), 1, 12)
-
-    -- Header
-    ui.pushFont(ui.Font.Title)
-    ui.textColored("OVERTAKE", colorAccent)
-    ui.popFont()
-    
-    -- Score cards - using fixed positions based on window size
-    ui.offsetCursorY(10)
-    
-    -- Current score card (left side)
-    local cardWidth = (windowSize.x - 10) / 2
-    local cardHeight = 70
-    
-    ui.drawRectFilled(vec2(0, ui.getCursorY()), vec2(cardWidth, cardHeight), colorCard, 8)
-    ui.drawRect(vec2(0, ui.getCursorY()), vec2(cardWidth, cardHeight), rgbm(0.3, 0.3, 0.35, 0.5), 1, 8)
-    ui.setCursor(vec2(10, ui.getCursorY() + 10))
-    ui.pushFont(ui.Font.Small)
-    ui.textColored("CURRENT SCORE", rgbm(0.7, 0.7, 0.7, 1))
-    ui.popFont()
-    ui.setCursor(vec2(10, ui.getCursorY() + 5))
-    ui.pushFont(ui.Font.Huge)
-    ui.textColored(string.format("%06d", totalScore), colorText)
-    ui.popFont()
-    
-    -- Combo card (right side)
-    ui.setCursor(vec2(cardWidth + 10, 30))
-    ui.drawRectFilled(vec2(cardWidth + 10, 30), vec2(windowSize.x, 30 + cardHeight), colorCard, 8)
-    ui.drawRect(vec2(cardWidth + 10, 30), vec2(windowSize.x, 30 + cardHeight), rgbm(0.3, 0.3, 0.35, 0.5), 1, 8)
-    ui.setCursor(vec2(cardWidth + 20, 40))
-    ui.pushFont(ui.Font.Small)
-    ui.textColored("COMBO MULTIPLIER", rgbm(0.7, 0.7, 0.7, 1))
-    ui.popFont()
-    ui.setCursor(vec2(cardWidth + 20, 45))
-    ui.pushFont(ui.Font.Huge)
-    ui.beginRotation()
-    ui.textColored(string.format("%.1fX", comboMeter), colorAccent)
-    if comboMeter > 20 then
-        ui.endRotation(math.sin(comboMeter / 180 * 3141.5) * 3 * math.lerpInvSat(comboMeter, 20, 30) + 90)
-    end
-    ui.popFont()
-    
-    -- Speed warning (below cards)
-    ui.offsetCursorY(80)
-    if speedWarning > 0.1 then
-        ui.drawRectFilled(vec2(0, ui.getCursorY()), vec2(windowSize.x, 30), rgbm(0.15, 0.1, 0.05, 0.7), 6)
-        ui.drawRect(vec2(0, ui.getCursorY()), vec2(windowSize.x, 30), rgbm(0.8, 0.4, 0.1, 0.5), 1, 6)
-        ui.setCursor(vec2(10, ui.getCursorY() + 7))
-        ui.pushFont(ui.Font.Main)
-        ui.textColored("SPEED TOO LOW!", colorWarning)
-        ui.popFont()
-        
-        -- Speed progress bar
-        local progress = math.min(player.speedKmh/requiredSpeed, 1)
-        local barWidth = windowSize.x - 20
-        ui.drawRectFilled(vec2(10, ui.getCursorY() + 15), vec2(10 + barWidth, ui.getCursorY() + 20), rgbm(0.2, 0.2, 0.2, 1), 3)
-        ui.drawRectFilled(vec2(10, ui.getCursorY() + 15), vec2(10 + barWidth * progress, ui.getCursorY() + 20), colorWarning, 3)
-        ui.drawText(vec2(windowSize.x - 60, ui.getCursorY() + 12), string.format("%d/%d km/h", math.floor(player.speedKmh), requiredSpeed), rgbm(0.9, 0.9, 0.9, 1))
-    end
-    
-    -- Messages area (bottom section)
-    ui.offsetCursorY(40)
-    local messagesHeight = 80
-    ui.drawRectFilled(vec2(0, ui.getCursorY()), vec2(windowSize.x, ui.getCursorY() + messagesHeight), rgbm(0.1, 0.1, 0.12, 0.7), 8)
-    ui.drawRect(vec2(0, ui.getCursorY()), vec2(windowSize.x, ui.getCursorY() + messagesHeight), rgbm(0.3, 0.3, 0.35, 0.3), 1, 8)
-    
-    local messageStartPos = ui.getCursor() + vec2(10, 10)
-    for i = 1, #messages do
-        local m = messages[i]
-        local fade = math.saturate(4 - m.currentPos) * math.saturate(8 - m.age)
-        local offsetX = math.saturate(1 - m.age * 5) ^ 2 * 15
-        
-        ui.setCursor(messageStartPos + vec2(offsetX, (m.currentPos - 1) * 18))
-        
-        local messageColor = m.mood == 1 and colorPositive or m.mood == -1 and colorNegative or colorText
-        messageColor.mult = fade
-        
-        ui.pushFont(ui.Font.Main)
-        ui.textColored(m.text, messageColor)
-        ui.popFont()
-    end
-    
-    -- Glitter effects
-    for i = 1, glitterCount do
-        local g = glitter[i]
-        if g ~= nil then
-            ui.drawLine(g.pos, g.pos + g.velocity * 4, g.color, 2)
+            local speed = math.min(ac.getCarState(1).speedKmh, 180)
+            if speed > 1 then
+                ui.drawLine(ref + vec2(0, 0), ref + vec2(speed, 0), colorAccent, 4)
+            end
         end
+
+        ui.beginTransparentWindow("overtakeScore", vec2(100, 100), vec2(400 * 0.5, 400 * 0.5))
+        ui.beginOutline()
+
+        ui.pushStyleVar(ui.StyleVar.Alpha, 1 - speedWarning)
+        ui.pushFont(ui.Font.Main)
+        ui.text("Highest Score: " .. highestScore .. " pts")
+        ui.popFont()
+        ui.popStyleVar()
+
+        ui.pushFont(ui.Font.Title)
+        ui.text(totalScore .. " pts")
+        ui.sameLine(0, 20)
+        ui.beginRotation()
+        ui.textColored(math.ceil(comboMeter * 10) / 10 .. "x", colorCombo)
+        if comboMeter > 20 then
+            ui.endRotation(math.sin(comboMeter / 180 * 3141.5) * 3 * math.lerpInvSat(comboMeter, 20, 30) + 90)
+        end
+        ui.popFont()
+        ui.endOutline(rgbm(0, 0, 0, 0.3))
+
+        ui.offsetCursorY(20)
+        ui.pushFont(ui.Font.Main)
+        local startPos = ui.getCursor()
+        for i = 1, #messages do
+            local m = messages[i]
+            local f = math.saturate(4 - m.currentPos) * math.saturate(8 - m.age)
+            ui.setCursor(startPos + vec2(20 * 0.5 + math.saturate(1 - m.age * 10) ^ 2 * 50, (m.currentPos - 1) * 15))
+            ui.textColored(
+                m.text,
+                m.mood == 1 and rgbm(0, 1, 0, f) or m.mood == -1 and rgbm(1, 0, 0, f) or rgbm(1, 1, 1, f)
+            )
+        end
+        for i = 1, glitterCount do
+            local g = glitter[i]
+            if g ~= nil then
+                ui.drawLine(g.pos, g.pos + g.velocity * 4, g.color, 2)
+            end
+        end
+        ui.popFont()
+        ui.setCursor(startPos + vec2(0, 4 * 30))
+
+        ui.pushStyleVar(ui.StyleVar.Alpha, speedWarning)
+        ui.setCursorY(0)
+        ui.pushFont(ui.Font.Main)
+        ui.textColored("Keep speed above " .. requiredSpeed .. " km/h:", colorAccent)
+        speedMeter(ui.getCursor() + vec2(-9 * 0.5, 4 * 0.2))
+
+        ui.popFont()
+        ui.popStyleVar()
+
+        ui.endTransparentWindow()
     end
-
-    -- Highest score at bottom
-    ui.setCursor(vec2(10, windowSize.y - 20))
-    ui.pushFont(ui.Font.Small)
-    ui.textColored("HIGH SCORE: " .. string.format("%06d", highestScore), rgbm(0.7, 0.7, 0.7, 1))
-    ui.popFont()
-
-    ui.endTransparentWindow()
-end
